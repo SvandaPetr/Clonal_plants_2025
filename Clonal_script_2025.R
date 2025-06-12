@@ -14,10 +14,12 @@
 install("here")
 install("readxl")
 install("usethis")
+install("ggplot2")
 
 library("here")  
 library("readxl")
 library("usethis")
+library("ggplot2")
 
 #----------------------------------------------------------#
 # 1. Import dataset ----
@@ -64,13 +66,56 @@ koreny$diff_RS_below <- koreny$below_RS_in + koreny$below_RS_out - koreny$below_
 #----------------------------------------------------------#
 
 
+#---------------------------#
+## 4.1 Basic differences between ploidy, no treatment in mind ----
+#---------------------------#
 
 
-f
+#-----#
+### 4.1.1 Ploidy and aboveground biomass ----
+#-----#
 
 
+# Want to have a look on the distribution
+par(mfrow = c(2,2))
+hist(koreny$weight_shoot)
+hist(koreny$weight_shoot[koreny$sample_ploidy == "2x"])
+hist(koreny$weight_shoot[koreny$sample_ploidy == "3x"])
+hist(koreny$weight_shoot[koreny$sample_ploidy == "4x"])
+par(mfrow = c(1,1)) #altogether kinda nice, by not so much by themself
 
 
+# Still lets simply have a look on the differences
+boxplot(koreny$weight_shoot ~ koreny$sample_ploidy)
+
+model <- aov(koreny$weight_shoot ~ koreny$sample_ploidy)
+anova(model)
+
+#let´s check the diagnostic plots
+par(mfrow = c(2,2))
+plot(model)
+par(mfrow = c(1,1)) #eeeh, i would try to do something with that, but i do not want to waste time with that because i dont believe in it anyway ->
+
+TukeyHSD(model) #ok, but i did not consider the difference in size before planting -> we did not weigh them,                 so lets see if shoot_weight ~ number of leaves before planting is significant
+
+
+# Check the effect of size before
+model <- lm(koreny$weight_shoot ~ koreny$leaves_before)
+anova(model) #yea, as expected
+
+ggplot2::ggplot(data = koreny,
+                aes(x = weight_shoot,
+                    y = leaves_before, 
+                    colour = sample_ploidy)) +
+                geom_point() #maybe kinda funny difference between size on the start
+
+#maybe kinda funny difference between size on the start
+boxplot(koreny$leaves_before ~ koreny$sample_ploidy) #ye, and the shoot biomass copies that so nicely let´s move on
+
+
+#-----#
+### 4.1.1 Ploidy and belowground biomass ----
+#-----#
 
 
 
