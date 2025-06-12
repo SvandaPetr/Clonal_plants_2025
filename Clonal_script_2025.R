@@ -32,10 +32,49 @@ korinky <- readxl::read_xlsx("data/Rhodopea_seedlings.xlsx", sheet = "harvest_da
                               skip = 1
                              )
 
+#----------------------------------------------------------#
+# 2. clearing of NA ----
+#----------------------------------------------------------#
+
+koreny <- korinky[!is.na(korinky$weight_SRL),]
+
 
 #----------------------------------------------------------#
-# 2. Analyses ----
+# 3. Adding columns ----
 #----------------------------------------------------------#
+
+#column for change in number of leaves
+koreny$diff_leaves <- koreny$leaves_main - koreny$leaves_before
+
+#column for all the leaves grown? not sure if it will be useful, we have shoot biomass but idk
+koreny$leaves_all <- koreny$diff_leaves + koreny$leaves_axillary + koreny$leaves_RS
+
+#column for change in number of axillary rosettes
+koreny$diff_axillary <- koreny$axillary_rosettes - koreny$axillary_rosettes_before
+
+#column for change in number of RS
+koreny$diff_RS_above <- koreny$RS_rosettes - koreny$above_RS_before
+
+#column for change in number of belowground rootsprouts
+koreny$diff_RS_below <- koreny$below_RS_in + koreny$below_RS_out - koreny$below_RS_before
+
+
+#----------------------------------------------------------#
+# 4. Analyses ----
+#----------------------------------------------------------#
+
+
+
+
+f
+
+
+
+
+
+
+
+
 
 
 
