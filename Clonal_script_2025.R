@@ -11,15 +11,16 @@
 # 0. Install and load packages ----
 #----------------------------------------------------------#
 
-install("here")
-install("readxl")
-install("usethis")
-install("ggplot2")
+install.packages("here")
+install.packages("readxl")
+install.packages("usethis")
+install.packages("ggplot2")
 
 library("here")  
 library("readxl")
 library("usethis")
 library("ggplot2")
+library("tidyverse")
 
 #----------------------------------------------------------#
 # 1. Import dataset ----
@@ -58,8 +59,17 @@ koreny$diff_axillary <- koreny$axillary_rosettes - koreny$axillary_rosettes_befo
 koreny$diff_RS_above <- koreny$RS_rosettes - koreny$above_RS_before
 
 #column for change in number of belowground rootsprouts
-koreny$diff_RS_below <- koreny$below_RS_in + koreny$below_RS_out - koreny$below_RS_before
+koreny$RS_below <- koreny$below_RS_in + koreny$below_RS_out
 
+#column for all the roots grown
+koreny$root_all <- koreny$weight_root_in + koreny$weight_root_out
+
+#column for RS_in_out ratio 
+koreny$ratio_in_out <- koreny$below_RS_in/koreny$below_RS_out
+
+#column for Root/Shoot
+
+koreny$root_shoot <- koreny$root_all/koreny$weight_shoot
 
 #----------------------------------------------------------#
 # 4. Analyses ----
@@ -88,6 +98,7 @@ par(mfrow = c(1,1)) #altogether kinda nice, by not so much by themself
 # Still lets simply have a look on the differences
 boxplot(koreny$weight_shoot ~ koreny$sample_ploidy)
 
+koreny$sample_ploidy <- as.factor(koreny$sample_ploidy)
 model <- aov(koreny$weight_shoot ~ koreny$sample_ploidy)
 anova(model)
 
@@ -103,23 +114,283 @@ TukeyHSD(model) #ok, but i did not consider the difference in size before planti
 model <- lm(koreny$weight_shoot ~ koreny$leaves_before)
 anova(model) #yea, as expected
 
-ggplot2::ggplot(data = koreny,
-                aes(x = weight_shoot,
-                    y = leaves_before, 
-                    colour = sample_ploidy)) +
-                geom_point() #maybe kinda funny difference between size on the start
-
 #maybe kinda funny difference between size on the start
 boxplot(koreny$leaves_before ~ koreny$sample_ploidy) #ye, and the shoot biomass copies that so nicely let´s move on
 
 
+model <- lm(weight_shoot ~ sample_ploidy*leaves_before,
+              data = koreny)
+anova(model)
+
+model <- lm(weight_shoot ~ sample_ploidy+leaves_before,
+            data = koreny)
+anova(model)
+
+#leaves before vezou všechno
+model <- lm(weight_shoot ~ leaves_before+sample_ploidy,
+            data = koreny)
+anova(model)
+
+
+#vysledná váha se liší podle velikosti na začátku
+
 #-----#
-### 4.1.1 Ploidy and belowground biomass ----
+### 4.1.2 Ploidy and belowground biomass ----
 #-----#
 
 
+par(mfrow = c(2,2))
+hist(koreny$root_all)
+hist(koreny$root_all[koreny$sample_ploidy == "2x"])
+hist(koreny$root_all[koreny$sample_ploidy == "3x"])
+hist(koreny$root_all[koreny$sample_ploidy == "4x"])
+par(mfrow = c(1,1)) #altogether kinda not nice
+
+
+# Still lets simply have a look on the differences
+boxplot(koreny$root_all ~ koreny$sample_ploidy)
+
+model <- lm(koreny$root_all ~ koreny$sample_ploidy)
+anova(model)
+summary(model)
+
+model <- lm(root_all ~ leaves_before, data = koreny)
+anova(model)
+
+model <- lm(koreny$root_all ~ koreny$sample_ploidy*koreny$leaves_before)
+anova(model)
+
+model <- lm(koreny$root_all ~ koreny$sample_ploidy+koreny$leaves_before)
+anova(model)
+
+#leaves before vezou všechno
+model <- lm(koreny$root_all ~ koreny$leaves_before+koreny$sample_ploidy)
+anova(model)
+
+
+#u kořenů stejně tak
+
+#-----#
+### 4.1.3 Ploidy and eoot/shoot ----
+#-----#
+
+model <- aov(koreny$root_shoot ~ koreny$sample_ploidy)
+anova(model)
+
+#-----#
+### 4.1.4 ploidy ~ root lenght ----
+#-----#
+
+model <- lm(koreny$root_lenght_2_m ~ koreny$sample_ploidy)
+anova(model)
+summary(model)
+
+
+model <- lm(koreny$root_lenght_2_m ~ koreny$leaves_before)
+anova(model)
+
+model <- lm(koreny$root_lenght_2_m ~ koreny$sample_ploidy*koreny$leaves_before)
+anova(model)
+
+model <- lm(koreny$root_lenght_2_m ~ koreny$sample_ploidy+koreny$leaves_before)
+anova(model)
+
+#opět, leaves before žerou všechno
+model <- lm(koreny$root_lenght_2_m ~ koreny$leaves_before+koreny$sample_ploidy)
+anova(model)
+
+
+#-----#
+### 4.1.5 ploidy ~ SRL ----
+#-----#
+
+model <- aov(koreny$SRL_m_g ~ koreny$sample_ploidy)
+anova(model)
+TukeyHSD(model)
+
+#-----#
+### 4.1.6 ploidy ~ axilary ----
+#-----#
+
+model <- aov(koreny$axillary_rosettes ~ koreny$sample_ploidy)
+anova(model)
+TukeyHSD(model)
+
+#-----#
+### 4.1.7 ploidy ~ longest ----
+#-----#
+
+model <- aov(koreny$longest_leaf ~ koreny$sample_ploidy)
+anova(model)
+TukeyHSD(model)
+
+#-----#
+### 4.1.8 treatment ~ cokoli ----
+#-----#
+
+model <- aov(koreny$leaves_before ~ koreny$treatment)
+anova(model)
+
+model <- aov(koreny$root_all ~ koreny$treatment)
+anova(model)
+
+model <- aov(koreny$SRL_m_g ~ koreny$treatment)
+anova(model)
+
+model <- aov(koreny$root_lenght_2_m ~ koreny$treatment)
+anova(model)
+
+model <- aov(koreny$root_axes_main ~ koreny$treatment)
+anova(model)
+
+model <- aov(koreny$leaves_all ~ koreny$treatment)
+anova(model) #aaaha?
+
+model <- aov(koreny$axillary_rosettes ~ koreny$treatment)
+anova(model)
+model <- aov(koreny$diff_axillary ~ koreny$treatment)
+anova(model) #aaaaha?
+
+model <- aov(koreny$leaves_axillary ~ koreny$treatment)
+anova(model)
+
+model <- aov(koreny$root_shoot ~ koreny$treatment)
+anova(model)
+
+#-----#
+### 4.1.8 root_lenght ~ axes ----
+#-----#
+
+model <- lm(koreny$root_lenght_2_m ~ koreny$root_axes_main)
+anova(model)
+
+hist(koreny$root_lenght_2_m)
+hist(log(koreny$root_lenght_2_m))
+
+model <- lm(log(koreny$root_lenght_2_m) ~ koreny$root_axes_main)
+anova(model) #aaaha
+model_primka <- model
+plot(log(koreny$root_lenght_2_m) ~ koreny$root_axes_main)
+abline(model_primka, col = "red")
+
+#-----#
+### 4.1.8 root_weight ~ axes ----
+#-----#
+
+model <- lm(koreny$root_all ~ koreny$root_axes_main)
+anova(model)
+model_primka <- model
+plot(koreny$root_all ~ koreny$root_axes_main)
+abline(model_primka, col = "red")
+
+
+#-----#
+### 4.1.8 leaves_before ~ axes ----
+#-----#
+
+model <- lm(koreny$leaves_before ~ koreny$root_axes_main)
+anova(model)
+model_primka <- model
+plot(koreny$leaves_before ~ koreny$root_axes_main)
+abline(model_primka, col = "red")
+
+#takže jen, že větší kytky dělají více axis
+
+#-----#
+# Predchozi veci ----
+#-----#
+
+#-----#
+### 4.1.3 treatment and belowground biomass ----
+#-----#
+
+
+# Still lets simply have a look on the differences
+boxplot(koreny$root_all ~ koreny$treatment + koreny$sample_ploidy)
+
+model <- aov(koreny$weight_shoot ~ koreny$treatment*koreny$leaves_before)
+anova(model)
+
+
+#-----#
+### 4.1.3 treatment and sprouts ----
+#-----#
+
+# Still lets simply have a look on the differences
+boxplot(koreny$RS_below ~ koreny$treatment)
+
+model <- aov(koreny$RS_below ~ koreny$treatment)
+anova(model)
+
+
+#-----#
+### 4.1.3 treatment and sprouts in n out ----
+#-----#
+
+#odtvorba diploidů
+koreny_bez_2<- koreny[koreny$sample_ploidy!="2x",]
+
+# Still lets simply have a look on the differences
+boxplot(koreny_bez_2$below_RS_in ~ koreny_bez_2$treatment + koreny_bez_2$sample_ploidy)
+boxplot(koreny_bez_2$below_RS_in ~ koreny_bez_2$treatment)
+model <- aov(koreny$below_RS_in ~ koreny$treatment)
+anova(model)
+
+
+# Still lets simply have a look on the differences
+boxplot(koreny_bez_2$below_RS_out ~ koreny_bez_2$treatment + koreny_bez_2$sample_ploidy)
+boxplot(koreny_bez_2$below_RS_out ~ koreny_bez_2$treatment)
+model <- aov(koreny$below_RS_out ~ koreny$treatment)
+anova(model)
+
+# Still lets simply have a look on the differences
+boxplot(koreny_bez_2$ratio_in_out ~ koreny_bez_2$treatment + koreny_bez_2$sample_ploidy)
+boxplot(koreny_bez_2$ratio_in_out ~ koreny_bez_2$treatment)
+model <- aov(koreny_bez_2$ratio_in_out ~ koreny_bez_2$treatment)
+anova(model)
+
+data_sprouts_long <- koreny_bez_2 %>%
+  pivot_longer(
+    cols = c(below_RS_in, below_RS_out), 
+    names_to = "Location_Type",                             # New column for the names ('Number_of_Sprouts_In', 'Number_of_Sprouts_Out')
+    values_to = "Sprout_Count"                               # New column for the values (the sprout counts)
+  ) %>%
+  # Clean up the 'Location_Type' column to just "In" or "Out"
+  mutate(Location = gsub("Number_of_Sprouts_", "", Location_Type)) %>%
+  select(-Location_Type) # Remove the original raw pivoted column
+
+print(data_sprouts_long)
+
+
+
+ggplot(data_sprouts_long, aes(x = treatment, y = Sprout_Count, fill = Location)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ sample_ploidy, scales = "free_x") + # Creates separate plots for '3x' and '4x'
+  labs(
+    title = "Number of Sprouts by Category, Treatment, and Location",
+    x = "Treatment Group",
+    y = "Number of Sprouts",
+    fill = "Sprout Location" # Legend title
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5),
+    panel.spacing = unit(2, "lines"), # Space between facets
+    plot.title = element_text(hjust = 0.5) # Center plot title
+  )
+
+
+m1<-aov(data_sprouts_long$Sprout_Count~data_sprouts_long$sample_ploidy+Error(data_sprouts_long$Location))
+summary(m1)
+
+m2<-aov(data_sprouts_long$Sprout_Count~data_sprouts_long$treatment+Error(data_sprouts_long$Location))
+summary(m2)
+
+
+m<-aov(data_sprouts_long$Sprout_Count~data_sprouts_long$sample_ploidy*data_sprouts_long$treatment+Error(data_sprouts_long$Location))
+summary(m)
 
 
 
 
-
+3
