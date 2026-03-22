@@ -15,12 +15,14 @@ install.packages("here")
 install.packages("readxl")
 install.packages("usethis")
 install.packages("ggplot2")
+install.packages("tidyr")
 
 library("here")  
 library("readxl")
 library("usethis")
 library("ggplot2")
 library("tidyverse")
+library("tidyr")
 
 #----------------------------------------------------------#
 # 1. Import dataset ----
@@ -296,6 +298,111 @@ abline(model_primka, col = "red")
 
 #takže jen, že větší kytky dělají více axis
 
+#---------------------------#
+## 4.2 variability ----
+#---------------------------#
+
+#MIDDLE
+
+koreny_clear <- drop_na(koreny, root_axes_main, RS_below, below_RS_in, below_RS_out)
+
+
+cv_root_weight_middle <- sd(koreny_clear$root_all[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$root_all[koreny_clear$treatment == "middle"]) * 100
+
+cv_shoot_weight_middle <- sd(koreny_clear$weight_shoot[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$weight_shoot[koreny_clear$treatment == "middle"]) * 100
+
+cv_root_lenght_middle <- sd(koreny_clear$root_lenght_2_m[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$root_lenght_2_m[koreny_clear$treatment == "middle"]) * 100
+
+cv_SRL_middle <- sd(koreny_clear$SRL_m_g[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$SRL_m_g[koreny_clear$treatment == "middle"]) * 100
+
+cv_rossets_middle <- sd(koreny_clear$diff_axillary[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$diff_axillary[koreny_clear$treatment == "middle"]) * 100
+
+cv_axes_middle <- sd(koreny_clear$root_axes_main[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$root_axes_main[koreny_clear$treatment == "middle"]) * 100
+
+cv_RS_in_middle <- sd(koreny_clear$below_RS_in[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$below_RS_in[koreny_clear$treatment == "middle"]) * 100
+
+cv_RS_out_middle <- sd(koreny_clear$below_RS_out[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$below_RS_out[koreny_clear$treatment == "middle"]) * 100
+
+cv_RS_all_middle <- sd(koreny_clear$RS_below[koreny_clear$treatment == "middle"])/
+  mean(koreny_clear$RS_below[koreny_clear$treatment == "middle"]) * 100
+
+#RIM
+
+cv_root_weight_rim <- sd(koreny_clear$root_all[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$root_all[koreny_clear$treatment == "rim"]) * 100
+
+cv_shoot_weight_rim <- sd(koreny_clear$weight_shoot[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$weight_shoot[koreny_clear$treatment == "rim"]) * 100
+
+cv_root_lenght_rim <- sd(koreny_clear$root_lenght_2_m[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$root_lenght_2_m[koreny_clear$treatment == "rim"]) * 100
+
+cv_SRL_rim <- sd(koreny_clear$SRL_m_g[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$SRL_m_g[koreny_clear$treatment == "rim"]) * 100
+
+cv_rossets_rim <- sd(koreny_clear$diff_axillary[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$diff_axillary[koreny_clear$treatment == "rim"]) * 100
+
+cv_axes_rim <- sd(koreny_clear$root_axes_main[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$root_axes_main[koreny_clear$treatment == "rim"]) * 100
+
+cv_RS_in_rim <- sd(koreny_clear$below_RS_in[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$below_RS_in[koreny_clear$treatment == "rim"]) * 100
+
+cv_RS_out_rim <- sd(koreny_clear$below_RS_out[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$below_RS_out[koreny_clear$treatment == "rim"]) * 100
+
+cv_RS_all_rim <- sd(koreny_clear$RS_below[koreny_clear$treatment == "rim"])/
+  mean(koreny_clear$RS_below[koreny_clear$treatment == "rim"]) * 100
+
+cv_data <- data.frame(
+  Promenna = rep(c("Root weight", "Shoot weight", "Root length", "SRL", 
+                   "Rossets", "Axes", "RS in", "RS out", "RS all"), times = 2),
+  
+  Treatment = rep(c("middle", "rim"), each = 9),
+  CV_hodnota = c(
+    # Hodnoty pro middle
+    cv_root_weight_middle, cv_shoot_weight_middle, cv_root_lenght_middle, 
+    cv_SRL_middle, cv_rossets_middle, cv_axes_middle, cv_RS_in_middle, 
+    cv_RS_out_middle, cv_RS_all_middle,
+    
+    # Hodnoty pro rim
+    cv_root_weight_rim, cv_shoot_weight_rim, cv_root_lenght_rim, 
+    cv_SRL_rim, cv_rossets_rim, cv_axes_rim, cv_RS_in_rim, 
+    cv_RS_out_rim, cv_RS_all_rim
+  )
+)
+
+
+ggplot(cv_data, aes(x = Promenna, y = CV_hodnota, fill = Treatment)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(
+    aes(label = round(CV_hodnota, 1)),
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3.5
+  ) +
+  scale_fill_manual(values = c("middle" = "#1b9e77", "rim" = "#d95f02")) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  ) +
+  labs(
+    title = "Variační koeficienty podle treatmentu",
+    x = "Měřená proměnná",
+    y = "Variační koeficient (%)",
+    fill = "Treatment"
+  )
+
 #-----#
 # Predchozi veci ----
 #-----#
@@ -389,8 +496,3 @@ summary(m2)
 
 m<-aov(data_sprouts_long$Sprout_Count~data_sprouts_long$sample_ploidy*data_sprouts_long$treatment+Error(data_sprouts_long$Location))
 summary(m)
-
-
-
-
-3
