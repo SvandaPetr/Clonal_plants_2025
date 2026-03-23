@@ -299,7 +299,7 @@ abline(model_primka, col = "red")
 #takže jen, že větší kytky dělají více axis
 
 #---------------------------#
-## 4.2 variability ----
+## 4.2 variability treatment ----
 #---------------------------#
 
 #MIDDLE
@@ -402,6 +402,160 @@ ggplot(cv_data, aes(x = Promenna, y = CV_hodnota, fill = Treatment)) +
     y = "Variační koeficient (%)",
     fill = "Treatment"
   )
+
+
+ggplot(data = koreny, aes(x = treatment, y = diff_axillary, color = treatment )) +
+  geom_violin() +
+  geom_jitter(width = 0.1, height = 0)
+  
+ggplot(data = koreny, aes(x = treatment, y = below_RS_in, color = treatment )) +
+  geom_boxplot() +
+  geom_jitter(width = 0.1, height = 0)
+
+ggplot(data = koreny, aes(x = treatment, y = root_lenght_2_m, color = treatment )) +
+  geom_boxplot() +
+  geom_jitter(width = 0.1, height = 0)
+
+
+#---------------------------#
+## 4.2 variability ploidy ----
+#---------------------------#
+
+#2X
+
+cv_root_weight_2x <- sd(koreny_clear$root_all[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$root_all[koreny_clear$sample_ploidy == "2x"]) * 100
+
+cv_shoot_weight_2x <- sd(koreny_clear$weight_shoot[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$weight_shoot[koreny_clear$sample_ploidy == "2x"]) * 100
+
+cv_root_lenght_2x <- sd(koreny_clear$root_lenght_2_m[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$root_lenght_2_m[koreny_clear$sample_ploidy == "2x"]) * 100
+
+cv_SRL_2x <- sd(koreny_clear$SRL_m_g[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$SRL_m_g[koreny_clear$sample_ploidy == "2x"]) * 100
+
+cv_rossets_2x <- sd(koreny_clear$diff_axillary[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$diff_axillary[koreny_clear$sample_ploidy == "2x"]) * 100
+
+cv_axes_2x <- sd(koreny_clear$root_axes_main[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$root_axes_main[koreny_clear$sample_ploidy == "2x"]) * 100
+
+cv_RS_in_2x <- sd(koreny_clear$below_RS_in[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$below_RS_in[koreny_clear$sample_ploidy == "2x"]) * 100
+
+cv_RS_out_2x <- sd(koreny_clear$below_RS_out[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$below_RS_out[koreny_clear$sample_ploidy == "2x"]) * 100
+
+cv_RS_all_2x <- sd(koreny_clear$RS_below[koreny_clear$sample_ploidy == "2x"])/
+  mean(koreny_clear$RS_below[koreny_clear$sample_ploidy == "2x"]) * 100
+
+#3X
+
+cv_root_weight_3x <- sd(koreny_clear$root_all[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$root_all[koreny_clear$sample_ploidy == "3x"]) * 100
+
+cv_shoot_weight_3x <- sd(koreny_clear$weight_shoot[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$weight_shoot[koreny_clear$sample_ploidy == "3x"]) * 100
+
+cv_root_lenght_3x <- sd(koreny_clear$root_lenght_2_m[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$root_lenght_2_m[koreny_clear$sample_ploidy == "3x"]) * 100
+
+cv_SRL_3x <- sd(koreny_clear$SRL_m_g[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$SRL_m_g[koreny_clear$sample_ploidy == "3x"]) * 100
+
+cv_rossets_3x <- sd(koreny_clear$diff_axillary[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$diff_axillary[koreny_clear$sample_ploidy == "3x"]) * 100
+
+cv_axes_3x <- sd(koreny_clear$root_axes_main[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$root_axes_main[koreny_clear$sample_ploidy == "3x"]) * 100
+
+cv_RS_in_3x <- sd(koreny_clear$below_RS_in[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$below_RS_in[koreny_clear$sample_ploidy == "3x"]) * 100
+
+cv_RS_out_3x <- sd(koreny_clear$below_RS_out[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$below_RS_out[koreny_clear$sample_ploidy == "3x"]) * 100
+
+cv_RS_all_3x <- sd(koreny_clear$RS_below[koreny_clear$sample_ploidy == "3x"])/
+  mean(koreny_clear$RS_below[koreny_clear$sample_ploidy == "3x"]) * 100
+
+#4X
+
+cv_root_weight_4x <- sd(koreny_clear$root_all[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$root_all[koreny_clear$sample_ploidy == "4x"]) * 100
+
+cv_shoot_weight_4x <- sd(koreny_clear$weight_shoot[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$weight_shoot[koreny_clear$sample_ploidy == "4x"]) * 100
+
+cv_root_lenght_4x <- sd(koreny_clear$root_lenght_2_m[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$root_lenght_2_m[koreny_clear$sample_ploidy == "4x"]) * 100
+
+cv_SRL_4x <- sd(koreny_clear$SRL_m_g[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$SRL_m_g[koreny_clear$sample_ploidy == "4x"]) * 100
+
+cv_rossets_4x <- sd(koreny_clear$diff_axillary[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$diff_axillary[koreny_clear$sample_ploidy == "4x"]) * 100
+
+cv_axes_4x <- sd(koreny_clear$root_axes_main[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$root_axes_main[koreny_clear$sample_ploidy == "4x"]) * 100
+
+cv_RS_in_4x <- sd(koreny_clear$below_RS_in[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$below_RS_in[koreny_clear$sample_ploidy == "4x"]) * 100
+
+cv_RS_out_4x <- sd(koreny_clear$below_RS_out[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$below_RS_out[koreny_clear$sample_ploidy == "4x"]) * 100
+
+cv_RS_all_4x <- sd(koreny_clear$RS_below[koreny_clear$sample_ploidy == "4x"])/
+  mean(koreny_clear$RS_below[koreny_clear$sample_ploidy == "4x"]) * 100
+
+
+
+cv_data_ploidy <- data.frame(
+  Promenna = rep(c("Root weight", "Shoot weight", "Root length", "SRL", 
+                   "Rossets", "Axes", "RS in", "RS out", "RS all"), times = 3),
+  
+  Treatment = rep(c("2x", "3x", "4x"), each = 9),
+  CV_hodnota = c(
+    # Hodnoty pro 2x
+    cv_root_weight_2x, cv_shoot_weight_2x, cv_root_lenght_2x, 
+    cv_SRL_2x, cv_rossets_2x, cv_axes_2x, cv_RS_in_2x, 
+    cv_RS_out_2x, cv_RS_all_2x,
+    
+    # Hodnoty pro 3x
+    cv_root_weight_3x, cv_shoot_weight_3x, cv_root_lenght_3x, 
+    cv_SRL_3x, cv_rossets_3x, cv_axes_3x, cv_RS_in_3x, 
+    cv_RS_out_3x, cv_RS_all_3x,
+    
+    # Hodnoty pro 4x
+    cv_root_weight_4x, cv_shoot_weight_4x, cv_root_lenght_4x, 
+    cv_SRL_4x, cv_rossets_4x, cv_axes_4x, cv_RS_in_4x, 
+    cv_RS_out_4x, cv_RS_all_4x
+  )
+)
+
+
+ggplot(cv_data_ploidy, aes(x = Promenna, y = CV_hodnota, fill = Treatment)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(
+    aes(label = round(CV_hodnota, 1)),
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3.5
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  ) +
+  labs(
+    title = "Variační koeficienty podle treatmentu",
+    x = "Měřená proměnná",
+    y = "Variační koeficient (%)",
+    fill = "Treatment"
+  )
+
+#tady RS u diploda střílí čístě způsobem výpočtu - ignorovat
+
 
 #-----#
 # Predchozi veci ----
