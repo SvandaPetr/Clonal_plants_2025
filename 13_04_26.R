@@ -22,8 +22,9 @@ koreny$root_shoot <- koreny$root_all/koreny$weight_shoot
 
 #zjistit jestli IN a OUT je stejné množství kořenů (máme jenom biomasu na porovnání ne?), abychom vědělx jestli počet RS není ovlivněný čistě rozdílným množstvím kořenů. 
 
+#porovnání biomasy kořenů IN a OUT pro každou ploidii
 par(mfrow = c(1, 3))
-for (ploidy in c("2 x", "3 x", "4 x")) { 
+for (ploidy in c("2x", "3x", "4x")) { 
   sub <- koreny[koreny$sample_ploidy == ploidy, ]
   boxplot(cbind(sub$weight_root_in, sub$weight_root_out),
           names = c("Root In", "Root Out"),
@@ -33,13 +34,29 @@ for (ploidy in c("2 x", "3 x", "4 x")) {
 }
 par(mfrow = c(1, 1))
 
+#porovnání biomasy kořenů IN a OUT pro treatment a každou ploidii
+par(mfrow = c(2, 3)) 
+for (treat in c("rim", "middle")) {
+  for (ploidy in c("2x", "3x", "4x")) { 
+    sub <- koreny[koreny$sample_ploidy == ploidy & koreny$treatment == treat, ]
+    boxplot(cbind(sub$weight_root_in, sub$weight_root_out),
+            names = c("Root In", "Root Out"),
+            col = c("steelblue", "tomato"),
+            main = paste(ploidy, treat),
+            ylab = "Weight")
+  }
+}
+par(mfrow = c(1, 1))
+
+library(dplyr)
+library(tidyr)
 koreny_long <- koreny %>%
-  select(samle_id, sample_ploidy, weight_root_in, weight_root_out) %>%
+  select(samle_id, sample_ploidy, weight_root_in, weight_root_out, treatment) %>%
   pivot_longer(cols = c(weight_root_in, weight_root_out),
                names_to = "type",
                values_to = "weight")
 
-model<-lm(weight~sample_ploidy+type, data=koreny_long)
+model<-lm(weight~sample_ploidy*type, data=koreny_long)
 anova(model)
 
 #ano je mnohem víc kořenů OUT než IN (platí pro všechny ploidie)
