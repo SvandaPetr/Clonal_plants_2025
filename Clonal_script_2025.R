@@ -16,6 +16,13 @@ install.packages("readxl")
 install.packages("usethis")
 install.packages("ggplot2")
 install.packages("tidyr")
+install.packages("emmeans")
+install.packages("multcomp")
+install.packages("multcompView")
+install.packages("dplyr")
+install.packages("betareg")
+install.packages("ggeffects")
+install.packages("DHARMa")
 
 library("here")  
 library("readxl")
@@ -23,6 +30,14 @@ library("usethis")
 library("ggplot2")
 library("tidyverse")
 library("tidyr")
+library("emmeans")
+library("multcomp")
+library("multcompView")
+library("vegan")
+library("dplyr")
+library("betareg")
+library("ggeffects")
+library("DHARMa")
 
 #----------------------------------------------------------#
 # 1. Import dataset ----
@@ -82,6 +97,111 @@ koreny$root_shoot <- koreny$root_all/koreny$weight_shoot
 ## 4.1 Basic differences between ploidy, no treatment in mind ----
 #---------------------------#
 
+#-----#
+# 4.1.0 Ploidy and number of leaves before ----
+#-----#
+
+boxplot(leaves_before ~ sample_ploidy, data = koreny)
+model <- lm(leaves_before ~ sample_ploidy, data = koreny)
+anova(model)
+par(mfrow = c(2,2))
+plot(model)
+par(mfrow = c(1,1))
+
+res_em <- emmeans(model, ~sample_ploidy)
+pairs(res_em, adjust = "tukey")
+
+cld_result <- cld(res_em, Letters = letters)
+print(cld_result)
+
+cld_data <- cld(res_em, Letters = letters) %>%
+  as.data.frame() %>%
+  mutate(.group = trimws(.group)) # Odstraní přebytečné mezery
+
+# 3. Zjistíme maximální hodnoty leaves_before pro každou skupinu (kvůli pozici Y)
+max_values <- koreny %>%
+  group_by(sample_ploidy) %>%
+  summarise(y_pos = max(leaves_before, na.rm = TRUE))
+
+# 4. Spojíme to do jedné tabulky pro ggplot
+label_data <- inner_join(cld_data, max_values, by = "sample_ploidy")
+
+
+ggplot(koreny, aes(x = sample_ploidy, y = leaves_before, fill = sample_ploidy, color = sample_ploidy)) +
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+  geom_jitter(
+    width = 0.1,
+    alpha = 0.8, 
+    size = 2,    
+  ) +
+  geom_text(data = label_data, 
+            aes(x = sample_ploidy, y = y_pos, label = .group),
+            vjust = -1, 
+            size = 5, 
+            fontface = "bold") +
+  
+  theme_minimal() +
+  labs(title = "Initial plant size in plants with different ploidy levels ",
+       x = "Ploidy",
+       y = "Initial number of leaves") +
+  theme(legend.position = "none")
+
+#-----#
+# 4.1.0 Ploidy and growth rate ----
+#-----#
+
+model <- lm(weight_shoot ~ sample_ploidy*leaves_before,
+            data = koreny)
+anova(model)
+
+slopes <- emtrends(model, ~ sample_ploidy, var = "leaves_before")
+print(slopes)
+pairs(slopes)
+
+
+ggplot(koreny, aes(x = leaves_before, y = weight_shoot, color = sample_ploidy)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal() +
+  labs(title = "Comparison of growth rate in different ploidy levels",
+       x = "Initial number of leaves",
+       y = "Final shoot weight")
+
+
+model <- lm(root_all ~ sample_ploidy*leaves_before,
+            data = koreny)
+anova(model)
+
+slopes <- emtrends(model, ~ sample_ploidy, var = "leaves_before")
+print(slopes)
+pairs(slopes)
+
+
+ggplot(koreny, aes(x = leaves_before, y = root_all, color = sample_ploidy)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal() +
+  labs(title = "Comparison of growth rate in different ploidy levels",
+       x = "Initial number of leaves",
+       y = "Final root weight")
+
+
+model <- lm(leaves_all ~ sample_ploidy*leaves_before,
+            data = koreny)
+anova(model)
+
+slopes <- emtrends(model, ~ sample_ploidy, var = "leaves_before")
+print(slopes)
+pairs(slopes)
+
+
+ggplot(koreny, aes(x = leaves_before, y = leaves_all, color = sample_ploidy)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal() +
+  labs(title = "Comparison of growth rate in different ploidy levels",
+       x = "Initial number of leaves",
+       y = "Final number of leaves")
 
 #-----#
 ### 4.1.1 Ploidy and aboveground biomass ----
@@ -557,12 +677,150 @@ ggplot(cv_data_ploidy, aes(x = Promenna, y = CV_hodnota, fill = Treatment)) +
 #tady RS u diploda střílí čístě způsobem výpočtu - ignorovat
 
 
+#---------------------------#
+## 4.1 Simonovi analyzy - bylo tam toho vic ----
+#---------------------------#
+
+koreny_clear %>% drop_na()
+
+response_var <- koreny_clear %>%
+  dplyr::select(RS_below, weight_shoot, root_all, longest_leaf, diff_axillary) %>%
+  drop_na()
+
+model_rda <- rda(response_var ~ koreny_clear$sample_ploidy * koreny_clear$treatment + Condition(koreny_clear$leaves_before))
+
+
+
+#---------------------------#
+## 4.2 Podíl in/out vůči celku ----
+#---------------------------#
+
+
+#S diploidy
+koreny_podil <- koreny_clear %>%
+    mutate(
+    below_RS_in = below_RS_in + 1,
+    below_RS_out = below_RS_out + 1,
+    RS_below = RS_below + 1, #hmm tady zvyšuju o 1, intuitivní by bylo zvednout o 2 když zvedám to zčeho se to původně cečetlo oboje o 1, ale vždycky to budu testovat jenom oproti jednomu z nich, takže o jedna je nejspíš správně
+    podil_in = below_RS_in / RS_below,
+    podil_out = below_RS_in / RS_below
+  )
+
+koreny_podil$podil_in
+koreny_podil$podil_out
+
+
+# Smith-Verkuilen transformace
+koreny_podil$podil_trans_in <- (koreny_podil$podil_in * (nrow(koreny_podil) - 1) + 0.5) / nrow(koreny_podil)
+koreny_podil$podil_trans_out <- (koreny_podil$podil_out * (nrow(koreny_podil) - 1) + 0.5) / nrow(koreny_podil)
+
+koreny_podil$podil_trans_in 
+koreny_podil$podil_trans_out
+
+koreny_podil$treatment <- as.factor(koreny_podil$treatment)
+koreny_podil$sample_ploidy <- as.factor(koreny_podil$sample_ploidy)
+
+class(koreny_podil$treatment)
+class(koreny_podil$sample_ploidy)
+
+#pro podíl RS_in vůči celku
+model_beta <- betareg(podil_trans_in ~ treatment * sample_ploidy + leaves_before, data = koreny_podil)
+summary(model_beta)
+
+#pro podíl RS_out vůči celku
+model_beta <- betareg(podil_trans_out ~ treatment * sample_ploidy + leaves_before, data = koreny_podil)
+summary(model_beta)
+
+#bez diploidu
+
+koreny_podil_bez2x <- koreny_podil %>%
+  filter(sample_ploidy != "2x")
+
+#pro podíl RS_in vůči celku
+model_beta <- betareg(podil_trans_in ~ treatment * sample_ploidy + leaves_before, data = koreny_podil_bez2x)
+summary(model_beta)
+
+#pro podíl RS_out vůči celku
+model_beta <- betareg(podil_trans_out ~ treatment * sample_ploidy + leaves_before, data = koreny_podil_bez2x)
+summary(model_beta)
+
+
+#---------------------------#
+## 4.2 Podíl in/out ----
+#---------------------------#
+
+#S diploidy
+model_binom <- glm(cbind(below_RS_in, below_RS_out) ~ treatment * sample_ploidy + leaves_before, 
+                   family = binomial, 
+                   data = koreny_podil)
+summary(model_binom)
+
+#bez diploidu
+model_binom_bez2x <- glm(cbind(below_RS_in, below_RS_out) ~ treatment * sample_ploidy + leaves_before, 
+                   family = binomial, 
+                   data = koreny_podil_bez2x)
+summary(model_binom_bez2x)
+
+#rezidualy
+rezidua_modelu <- simulateResiduals(fittedModel = model_binom_bez2x, n = 1000)
+plot(rezidua_modelu)
+testDispersion(rezidua_modelu)
+
+#bez diploidu + quasibinomial
+model_binom_bez2x_quasi <- glm(cbind(below_RS_in, below_RS_out) ~ treatment * sample_ploidy + leaves_before, 
+                         family = quasibinomial, 
+                         data = koreny_podil_bez2x)
+summary(model_binom_bez2x_quasi)
+
+
+#vizualizace
+predikce <- ggpredict(model_binom_bez2x, terms = c("treatment", "sample_ploidy"))
+
+plot(predikce) +
+  labs(
+    title = "Předpovězený podíl vnitřních (In) výhonů",
+    x = "Treatment",
+    y = "Pravděpodobnost 'In' výhonu",
+    colour = "Ploidie"
+  ) +
+  theme_minimal()
+
+
+data_pro_graf <- koreny_podil_bez2x %>%
+  pivot_longer(
+    cols = c(below_RS_in, below_RS_out), # Které sloupce sléváme
+    names_to = "pozice",                 # Jak se bude jmenovat nový sloupec s kategorií
+    values_to = "pocet"                  # Jak se bude jmenovat sloupec s čísly
+  ) %>%
+  # Drobná úprava textu, aby se v legendě grafu neukazovalo "below_RS_in", ale hezky "In" a "Out"
+  mutate(pozice = ifelse(pozice == "below_RS_in", "In", "Out"))
+
+# KROK 2: Samotný graf s facet wrapem
+ggplot(data_pro_graf, aes(x = treatment, y = pocet, fill = pozice)) +
+  # Vytvoření krabicového grafu; 'dodge' zajistí, že In a Out budou stát vedle sebe, ne na sobě
+  geom_boxplot(position = position_dodge(width = 0.8), alpha = 0.8, outlier.colour = "red") + 
+  
+  # ZDE JE TEN FACET WRAP: Rozdělí graf na okénka podle ploidie
+  facet_wrap(~ sample_ploidy) + 
+  
+  # Estetika a popisky
+  theme_minimal(base_size = 14) +
+  scale_fill_manual(values = c("In" = "#4CAF50", "Out" = "#FF9800")) + # Zelená a oranžová barva
+  labs(
+    title = "Absolutní počty výhonů: In vs. Out",
+    subtitle = "Srovnání vlivu treatmentu u triploidních a tetraploidních rostlin",
+    x = "Treatment",
+    y = "Počet výhonů na rostlinu",
+    fill = "Kde výhon roste:"
+  )
+
+
 #-----#
 # Predchozi veci ----
 #-----#
 
 #-----#
-### 4.1.3 treatment and belowground biomass ----
+### treatment and belowground biomass ----
 #-----#
 
 
@@ -574,8 +832,9 @@ anova(model)
 
 
 #-----#
-### 4.1.3 treatment and sprouts ----
+### treatment and sprouts ----
 #-----#
+
 
 # Still lets simply have a look on the differences
 boxplot(koreny$RS_below ~ koreny$treatment)
@@ -585,7 +844,7 @@ anova(model)
 
 
 #-----#
-### 4.1.3 treatment and sprouts in n out ----
+### treatment and sprouts in n out ----
 #-----#
 
 #odtvorba diploidů
