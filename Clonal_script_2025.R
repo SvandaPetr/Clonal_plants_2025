@@ -783,7 +783,6 @@ testDispersion(rezidua_modelu)
 model_binom_bez2x_quasi <- glm(cbind(below_RS_in, below_RS_out) ~ treatment * sample_ploidy + leaves_before + koreny_podil_in, 
                          family = quasibinomial, 
                          data = koreny_podil_bez2x)
-summary(model_binom_bez2x_quasi)
 anova(model_binom_bez2x_quasi, test = "F")
 par(mfrow = c(2,2))
 plot(model_binom_bez2x_quasi)
@@ -792,7 +791,6 @@ plot(model_binom_bez2x_quasi)
 model_binom_bez2x_quasi <- glm(cbind(below_RS_in, below_RS_out) ~ leaves_before + koreny_podil_in + treatment * sample_ploidy, 
                                family = quasibinomial, 
                                data = koreny_podil_bez2x)
-summary(model_binom_bez2x_quasi)
 anova(model_binom_bez2x_quasi, test = "F")
 par(mfrow = c(2,2))
 plot(model_binom_bez2x_quasi)
@@ -889,15 +887,14 @@ koreny_podil_bez2x$RS_below
 model_koreny_bez2x <- lm(root_all ~ leaves_before + treatment * sample_ploidy,
                                data = koreny_podil_bez2x)
 summary(model_koreny_bez2x)
-anova(model_koreny_bez2x, test = "F")
 
 predikce <- ggpredict(model = model_koreny_bez2x, terms = c("treatment", "sample_ploidy"))
 
 plot(predikce) +
   labs(
-    title = "Předpovězený počet výhonů",
+    title = "Předpovězené množství kořenů",
     x = "Treatment",
-    y = "počet RS",
+    y = "počet Kořenů",
     colour = "Ploidie"
   ) +
   theme_minimal()
