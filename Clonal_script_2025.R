@@ -732,6 +732,10 @@ model_beta <- betareg(podil_trans_out ~ treatment * sample_ploidy + leaves_befor
 summary(model_beta)
 
 #bez diploidu
+koreny_podil$koreny_podil_in <- koreny_podil$weight_root_in/koreny_podil$root_all
+
+koreny_podil$koreny_podil_out <- koreny_podil$weight_root_out/koreny_podil$root_all
+
 
 koreny_podil_bez2x <- koreny_podil %>%
   filter(sample_ploidy != "2x")
@@ -744,6 +748,15 @@ summary(model_beta)
 model_beta <- betareg(podil_trans_out ~ treatment * sample_ploidy + leaves_before, data = koreny_podil_bez2x)
 summary(model_beta)
 
+
+
+#pro podíl koreny_in vůči celku koreny
+model_beta <- betareg(koreny_podil_in ~ treatment * sample_ploidy + leaves_before, data = koreny_podil)
+summary(model_beta)
+
+#pro podíl koreny_out vůči celku koreny
+model_beta <- betareg(koreny_podil_in ~ treatment * sample_ploidy + leaves_before, data = koreny_podil)
+summary(model_beta)
 
 #---------------------------#
 ## 4.2 Podíl in/out ----
@@ -766,15 +779,34 @@ rezidua_modelu <- simulateResiduals(fittedModel = model_binom_bez2x, n = 1000)
 plot(rezidua_modelu)
 testDispersion(rezidua_modelu)
 
-#bez diploidu + quasibinomial
-model_binom_bez2x_quasi <- glm(cbind(below_RS_in, below_RS_out) ~ treatment * sample_ploidy + leaves_before, 
+#bez diploidu + quasibinomial + koreny!!!!!!!!!!!!!
+model_binom_bez2x_quasi <- glm(cbind(below_RS_in, below_RS_out) ~ treatment * sample_ploidy + leaves_before + koreny_podil_in, 
                          family = quasibinomial, 
                          data = koreny_podil_bez2x)
 summary(model_binom_bez2x_quasi)
+anova(model_binom_bez2x_quasi, test = "F")
+par(mfrow = c(2,2))
+plot(model_binom_bez2x_quasi)
+
+#bez diploidu + quasibinomial + koreny!!!!!!!!!!!!! prohozene prediktory
+model_binom_bez2x_quasi <- glm(cbind(below_RS_in, below_RS_out) ~ leaves_before + koreny_podil_in + treatment * sample_ploidy, 
+                               family = quasibinomial, 
+                               data = koreny_podil_bez2x)
+summary(model_binom_bez2x_quasi)
+anova(model_binom_bez2x_quasi, test = "F")
+par(mfrow = c(2,2))
+plot(model_binom_bez2x_quasi)
+par(mfrow = c(1,1))
+
+#bez diploidu - koreny misto RS
+model_koreny_binom_bez2x <- glm(cbind(weight_root_in, weight_root_out) ~ treatment * sample_ploidy + leaves_before, 
+                         family = binomial, 
+                         data = koreny_podil_bez2x)
+summary(model_koreny_binom_bez2x)
 
 
 #vizualizace
-predikce <- ggpredict(model_binom_bez2x, terms = c("treatment", "sample_ploidy"))
+predikce <- ggpredict(model_koreny_binom_bez2x, terms = c("treatment", "sample_ploidy"))
 
 plot(predikce) +
   labs(
@@ -813,6 +845,63 @@ ggplot(data_pro_graf, aes(x = treatment, y = pocet, fill = pozice)) +
     y = "Počet výhonů na rostlinu",
     fill = "Kde výhon roste:"
   )
+
+#---------------------------#
+## 4.2 počet RS ~ na vsem moznym ----
+#---------------------------#
+
+
+#bez diploidu + poisson + prohozene prediktory
+model_quasipoisson_bez2x <- glm(RS_below ~ root_all + leaves_before + treatment * sample_ploidy, 
+                               family = quasipoisson, 
+                               data = koreny_podil_bez2x)
+anova(model_quasipoisson_bez2x, test = "F")
+
+predikce <- ggpredict(model = model_quasipoisson_bez2x, terms = c("treatment", "sample_ploidy"))
+
+plot(predikce) +
+  labs(
+    title = "Předpovězený počet výhonů",
+    x = "Treatment",
+    y = "počet RS",
+    colour = "Ploidie"
+  ) +
+  theme_minimal()
+
+#rezidualy DHARMa
+rezidua_modelu <- simulateResiduals(fittedModel = model_binom_bez2x_quasi, n = 1000)
+plot(rezidua_modelu)
+testDispersion(rezidua_modelu)
+
+#rezidualy
+par(mfrow = c(2,2))
+plot(model_binom_bez2x_quasi)
+par(mfrow = c(1,1))
+koreny_podil_bez2x$RS_below
+
+
+#---------------------------#
+## 4.2 počet korenu ~ na vsem moznym ----
+#---------------------------#
+
+
+#bez diploidu + poisson + prohozene prediktory
+model_koreny_bez2x <- lm(root_all ~ leaves_before + treatment * sample_ploidy,
+                               data = koreny_podil_bez2x)
+summary(model_koreny_bez2x)
+anova(model_koreny_bez2x, test = "F")
+
+predikce <- ggpredict(model = model_koreny_bez2x, terms = c("treatment", "sample_ploidy"))
+
+plot(predikce) +
+  labs(
+    title = "Předpovězený počet výhonů",
+    x = "Treatment",
+    y = "počet RS",
+    colour = "Ploidie"
+  ) +
+  theme_minimal()
+
 
 
 #-----#
